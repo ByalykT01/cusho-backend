@@ -1,0 +1,6 @@
+@cusho_HostAddress = http://localhost:5075
+
+GET {{cusho_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
