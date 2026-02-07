@@ -1,4 +1,4 @@
-namespace cusho.DTOs;
+namespace cusho.Dtos;
 
 public class ConfirmationResponseDto
 {

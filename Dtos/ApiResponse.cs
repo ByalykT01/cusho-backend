@@ -1,7 +1,6 @@
 using System.Net;
-using System.Runtime.InteropServices.JavaScript;
 
-namespace cusho.DTOs;
+namespace cusho.Dtos;
 
 public class ApiResponse<T>
 
