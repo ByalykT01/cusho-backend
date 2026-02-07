@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace cusho.Models;
@@ -26,5 +27,10 @@ public class User
     public DateTime Created { get; } = DateTime.UtcNow;
     public Address? Address { get; set; }
     public bool IsActive { get; set; } = true;
-    public required Cart Cart { get; set; }
+
+    [Required(ErrorMessage = "Cart ID is required")]
+    public long CartId { get; set; }
+
+    [ForeignKey("CartId")] 
+    public Cart Cart { get; set; }
 }
