@@ -1,10 +1,16 @@
 using cusho.Data;
+using cusho.Dtos;
+using cusho.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddControllers();
+
 builder.Services.AddDbContext<ApplicationDbContext>(opt =>
     opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddScoped<UserService>();
 
 builder.Services.AddProblemDetails();
 
@@ -17,7 +23,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseStatusCodePages();
 app.UseHttpsRedirection();
-app.UseAuthorization();
 app.MapControllers();
 
 app.Run();

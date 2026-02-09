@@ -24,13 +24,12 @@ public class User
     public required string Password { get; set; }
 
     public Role Role { get; set; } = Role.User;
-    public DateTime Created { get; } = DateTime.UtcNow;
+    public DateTime Created { get; init; }
     public Address? Address { get; set; }
     public bool IsActive { get; set; } = true;
 
     [Required(ErrorMessage = "Cart ID is required")]
     public long CartId { get; set; }
 
-    [ForeignKey("CartId")] 
-    public Cart Cart { get; set; }
+    [ForeignKey("CartId")] public Cart Cart { get; set; }
 }
