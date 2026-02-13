@@ -8,12 +8,12 @@ namespace cusho.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class UserController(UserService userService) : ControllerBase
+public class UsersController(UsersService usersService) : ControllerBase
 {
     [HttpPost("register")]
     public async Task<ActionResult<ApiResponse<UserResponseDto>>> RegisterUser(UserRegistrationDto userRegistrationDto)
     {
-        var response = await userService.RegisterUserAsync(userRegistrationDto);
+        var response = await usersService.RegisterUserAsync(userRegistrationDto);
         if (response.StatusCode != HttpStatusCode.Created)
         {
             return StatusCode((int)response.StatusCode, response);
@@ -25,7 +25,20 @@ public class UserController(UserService userService) : ControllerBase
     [HttpGet("{userId}", Name = nameof(GetUserById))]
     public async Task<ActionResult<ApiResponse<UserResponseDto>>> GetUserById(long userId)
     {
-        var response = await userService.GetUserByIdAsync(userId);
+        var response = await usersService.GetUserByIdAsync(userId);
+
+        if (response.StatusCode != HttpStatusCode.OK)
+        {
+            return StatusCode((int)response.StatusCode, response);
+        }
+
+        return Ok(response);
+    }
+
+    [HttpGet]
+    public async Task<ActionResult<ApiResponse<UserResponseDto>>> GetAllUsers()
+    {
+        var response = await usersService.GetAllUsersAsync();
 
         if (response.StatusCode != HttpStatusCode.OK)
         {

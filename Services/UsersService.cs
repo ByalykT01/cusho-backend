@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace cusho.Services;
 
-public class UserService(ApplicationDbContext dbContext)
+public class UsersService(ApplicationDbContext dbContext)
 {
     public async Task<ApiResponse<UserResponseDto>> RegisterUserAsync(UserRegistrationDto userRegistrationDto)
     {
@@ -90,6 +90,29 @@ public class UserService(ApplicationDbContext dbContext)
             // return new ApiResponse<UserResponseDto>(HttpStatusCode.InternalServerError,
             //     $"An server error occured: {e.Message}");
             return new ApiResponse<UserResponseDto>(HttpStatusCode.InternalServerError,
+                "An unexpected error occurred. Please try again later.");
+        }
+    }
+
+    public async Task<ApiResponse<List<UserResponseDto>>> GetAllUsersAsync()
+    {
+        try
+        {
+            var foundUsers = await dbContext.Users
+                .Select(u => new UserResponseDto()
+                {
+                    Id = u.Id,
+                    FirstName = u.FirstName,
+                    LastName = u.LastName,
+                    Email = u.Email,
+                }).ToListAsync();
+            return foundUsers.Count == 0
+                ? new ApiResponse<List<UserResponseDto>>(HttpStatusCode.NotFound, "Users not found")
+                : new ApiResponse<List<UserResponseDto>>(HttpStatusCode.OK, foundUsers);
+        }
+        catch (Exception e)
+        {
+            return new ApiResponse<List<UserResponseDto>>(HttpStatusCode.InternalServerError,
                 "An unexpected error occurred. Please try again later.");
         }
     }
