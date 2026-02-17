@@ -47,4 +47,19 @@ public class UsersController(UsersService usersService) : ControllerBase
 
         return Ok(response);
     }
+
+    //should do it for currently registered user
+    [HttpPost("change-password")]
+    public async Task<ActionResult<ApiResponse<UserResponseDto>>> ChangePassword(
+        [FromBody] ChangePasswordDto changePasswordDto)
+    {
+        var response = await usersService.ChangePasswordAsync(changePasswordDto);
+
+        if (!response.Success)
+        {
+            return StatusCode((int)response.StatusCode, response);
+        }
+
+        return NoContent();
+    }
 }

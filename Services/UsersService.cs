@@ -116,4 +116,47 @@ public class UsersService(ApplicationDbContext dbContext)
                 "An unexpected error occurred. Please try again later.");
         }
     }
+
+    public async Task<ApiResponse<ConfirmationResponseDto>> ChangePasswordAsync(ChangePasswordDto changePasswordDto)
+    {
+        try
+        {
+            var foundUser = await dbContext.Users.Where(u => u.Id == changePasswordDto.UserId).FirstOrDefaultAsync();
+            if (foundUser == null || !foundUser.IsActive)
+            {
+                return new ApiResponse<ConfirmationResponseDto>(HttpStatusCode.NotFound, "User not found");
+            }
+
+            var isCurrentPassCorrect =
+                BCrypt.Net.BCrypt.Verify(changePasswordDto.CurrentPassword, foundUser.Password);
+
+            if (!isCurrentPassCorrect)
+            {
+                return new ApiResponse<ConfirmationResponseDto>(HttpStatusCode.BadRequest,
+                    "Current password is incorrect");
+            }
+
+            if (changePasswordDto.CurrentPassword == changePasswordDto.NewPassword)
+            {
+                return new ApiResponse<ConfirmationResponseDto>(HttpStatusCode.BadRequest,
+                    "Current password and new password are the same");
+            }
+
+
+            if (changePasswordDto.NewPassword != changePasswordDto.ConfirmNewPassword)
+            {
+                return new ApiResponse<ConfirmationResponseDto>(HttpStatusCode.BadRequest,
+                    "Passwords do not match");
+            }
+
+            foundUser.Password = BCrypt.Net.BCrypt.HashPassword(changePasswordDto.NewPassword);
+            await dbContext.SaveChangesAsync();
+            return new ApiResponse<ConfirmationResponseDto>(HttpStatusCode.NoContent, "Password changed successfully");
+        }
+        catch (Exception e)
+        {
+            return new ApiResponse<ConfirmationResponseDto>(HttpStatusCode.InternalServerError,
+                "An unexpected error occurred. Please try again later.");
+        }
+    }
 }
