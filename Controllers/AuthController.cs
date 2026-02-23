@@ -11,12 +11,14 @@ namespace cusho.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AuthController(AuthService authService)
+public class AuthController(AuthService authService, IConfiguration config) : ControllerBase
 {
-    [HttpPost("token")]
-    public IResult GetToken([FromServices] IConfiguration config, [FromBody] LoginDto loginDto)
+    [HttpPost("login")]
+    public IResult Login([FromBody] LoginDto loginDto)
     {
-        if (!authService.ValidateUser(loginDto)) return Results.Unauthorized();
+        if (!authService.ValidateUser(loginDto))
+            return Results.Unauthorized();
+
         var claims = new[]
         {
             new Claim(ClaimTypes.Name, loginDto.Email),
@@ -28,9 +30,13 @@ public class AuthController(AuthService authService)
             issuer: config["Jwt:Issuer"],
             audience: config["Jwt:Audience"],
             claims: claims,
-            expires: DateTime.Now.AddMinutes(30),
+            expires: DateTime.UtcNow.AddMinutes(30),
             signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256)
         );
-        return Results.Ok(new { token = new JwtSecurityTokenHandler().WriteToken(token) });
+
+        return Results.Ok(new
+        {
+            token = new JwtSecurityTokenHandler().WriteToken(token)
+        });
     }
 }
