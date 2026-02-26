@@ -1,9 +1,7 @@
 using System.Net;
-using cusho.CustomExceptions;
 using cusho.Data;
 using cusho.Dtos;
 using cusho.Dtos.UserDtos;
-using cusho.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace cusho.Services;
@@ -48,9 +46,9 @@ public class UsersService(ApplicationDbContext dbContext, ILogger<UsersService> 
             : new ApiResponse<List<UserResponseDto>>(HttpStatusCode.OK, foundUsers);
     }
 
-    public async Task<ApiResponse<ConfirmationResponseDto>> ChangePasswordAsync(ChangePasswordDto changePasswordDto)
+    public async Task<ApiResponse<ConfirmationResponseDto>> ChangePasswordAsync(string email, ChangePasswordDto changePasswordDto)
     {
-        var foundUser = await dbContext.Users.Where(u => u.Id == changePasswordDto.UserId).FirstOrDefaultAsync();
+        var foundUser = await dbContext.Users.Where(u => u.Email == email).FirstOrDefaultAsync();
         if (foundUser == null || !foundUser.IsActive)
         {
             return new ApiResponse<ConfirmationResponseDto>(HttpStatusCode.NotFound, "User not found");

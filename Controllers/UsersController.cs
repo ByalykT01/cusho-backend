@@ -1,4 +1,5 @@
 using System.Net;
+using System.Security.Claims;
 using cusho.Dtos;
 using cusho.Dtos.UserDtos;
 using cusho.Services;
@@ -38,13 +39,13 @@ public class UsersController(UsersService usersService) : ControllerBase
         return Ok(response);
     }
 
-    //should do it for currently registered user
     [Authorize]
     [HttpPost("change-password")]
     public async Task<ActionResult<ApiResponse<UserResponseDto>>> ChangePassword(
         [FromBody] ChangePasswordDto changePasswordDto)
     {
-        var response = await usersService.ChangePasswordAsync(changePasswordDto);
+        var email = User.FindFirst(ClaimTypes.Name)?.Value!;
+        var response = await usersService.ChangePasswordAsync(email, changePasswordDto);
 
         if (!response.Success)
         {

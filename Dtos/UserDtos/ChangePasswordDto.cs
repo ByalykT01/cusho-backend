@@ -4,9 +4,6 @@ namespace cusho.Dtos.UserDtos;
 
 public class ChangePasswordDto
 {
-    [Required(ErrorMessage = "UserId is required")]
-    public long UserId { get; set; }
-
     [Required(ErrorMessage = "Current Password is required")]
     public string CurrentPassword { get; set; }
 
