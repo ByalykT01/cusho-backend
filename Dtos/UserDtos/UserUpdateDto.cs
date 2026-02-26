@@ -5,7 +5,7 @@ namespace cusho.Dtos.UserDtos;
 public class UserUpdateDto
 {
     [Required(ErrorMessage = "UserId is required")]
-    public int UserId { get; set; }
+    public long UserId { get; set; }
 
     [Required(ErrorMessage = "First Name is required")]
     [MinLength(2, ErrorMessage = "First Name must be at least 2 characters")]
