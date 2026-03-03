@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace cusho.Services;
 
-public class UsersService(ApplicationDbContext dbContext, ILogger<UsersService> logger)
+public class UsersService(ApplicationDbContext dbContext)
 {
 
     public async Task<ApiResponse<UserResponseDto>> GetUserByIdAsync(long userId)
@@ -16,7 +16,7 @@ public class UsersService(ApplicationDbContext dbContext, ILogger<UsersService> 
             return new ApiResponse<UserResponseDto>(HttpStatusCode.BadRequest, "User id is a positive number");
         }
 
-        var foundUser = await dbContext.Users.Where(u => u.Id == userId)
+        var foundUser = await dbContext.Users.AsNoTracking().Where(u => u.Id == userId)
             .Select(u => new UserResponseDto()
             {
                 Id = u.Id,

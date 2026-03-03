@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace cusho.Models;
 
@@ -31,5 +30,8 @@ public class User
     [Required(ErrorMessage = "Cart ID is required")]
     public long CartId { get; set; }
 
-    [ForeignKey("CartId")] public Cart Cart { get; set; }
+    [ForeignKey("CartId")] public Cart? Cart { get; set; }
+
+    public ICollection<Order>? Orders { get; set; }
+    public ICollection<WishlistItem>? WishlistItems { get; set; }
 }

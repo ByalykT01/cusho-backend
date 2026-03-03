@@ -36,7 +36,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(opt =>
     opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<UsersService>();
-builder.Services.AddScoped<AuthService>(); 
+builder.Services.AddScoped<AuthService>();
 
 builder.Services.AddProblemDetails();
 
@@ -51,11 +51,9 @@ app.UseStatusCodePages();
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
-app.UseAuthorization(); 
+app.UseAuthorization();
+app.UseCors("CorsPolicy");
 
 app.MapControllers();
-
-app.MapGet("/secret", (ClaimsPrincipal user) => $"Hello {user.Identity?.Name}. My secret")
-    .RequireAuthorization();
 
 app.Run();
