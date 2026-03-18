@@ -10,9 +10,8 @@ namespace cusho.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class UsersController(UsersService usersService) : ControllerBase
+public class UsersController(UsersService usersService, ILogger<UsersController> logger) : ControllerBase
 {
-
     [HttpGet("{userId}", Name = nameof(GetUserById))]
     public async Task<ActionResult<ApiResponse<UserResponseDto>>> GetUserById(long userId)
     {
