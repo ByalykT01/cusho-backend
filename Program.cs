@@ -1,5 +1,6 @@
 using System.Net.Mime;
 using System.Text;
+using cusho.Configuration;
 using cusho.Data;
 using cusho.Services;
 using DotNetEnv;
@@ -10,32 +11,38 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Load .env file in Development, use environment variables in Production
 if (builder.Environment.IsDevelopment())
 {
     Env.Load();
 }
 
-// Build configuration from environment variables
-var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY") 
-    ?? throw new InvalidOperationException("JWT_KEY environment variable is required");
-var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? "cusho";
-var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? "cusho";
+var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY")
+             ?? throw new InvalidOperationException("JWT_KEY environment variable is required");
+var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER");
+var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE");
 
-var dbHost = Environment.GetEnvironmentVariable("DATABASE_HOST") ?? "localhost";
-var dbPort = Environment.GetEnvironmentVariable("DATABASE_PORT") ?? "5432";
-var dbName = Environment.GetEnvironmentVariable("DATABASE_NAME") ?? "cusho";
-var dbUser = Environment.GetEnvironmentVariable("DATABASE_USER") ?? "postgres";
-var dbPassword = Environment.GetEnvironmentVariable("DATABASE_PASSWORD") ?? "";
+var dbHost = Environment.GetEnvironmentVariable("DATABASE_HOST");
+var dbPort = Environment.GetEnvironmentVariable("DATABASE_PORT");
+var dbName = Environment.GetEnvironmentVariable("DATABASE_NAME");
+var dbUser = Environment.GetEnvironmentVariable("DATABASE_USER");
+var dbPassword = Environment.GetEnvironmentVariable("DATABASE_PASSWORD");
 
 var connectionString = string.IsNullOrEmpty(dbPassword)
     ? $"Host={dbHost};Port={dbPort};Database={dbName};Username={dbUser};"
     : $"Host={dbHost};Port={dbPort};Database={dbName};Username={dbUser};Password={dbPassword};";
 
-var allowedOrigins = Environment.GetEnvironmentVariable("ALLOWED_ORIGINS")?.Split(',') 
-    ?? ["http://localhost:5173"];
+var allowedOrigins = Environment.GetEnvironmentVariable("ALLOWED_ORIGINS")?.Split(',')
+                     ?? ["http://localhost:5173"];
 
 builder.Services.AddControllers();
+
+builder.Services.Configure<JwtSettings>(options =>
+{
+    options.Key = jwtKey;
+    options.Issuer = jwtIssuer;
+    options.Audience = jwtAudience;
+});
+
 
 builder.Services.AddAuthentication(options =>
     {
