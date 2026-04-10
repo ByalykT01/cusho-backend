@@ -1,4 +1,4 @@
-using System.Net;
+using cusho.Common;
 using cusho.Data;
 using cusho.Dtos;
 using cusho.Dtos.UserDtos;
@@ -9,14 +9,11 @@ namespace cusho.Services;
 public class UsersService(ApplicationDbContext dbContext)
 {
 
-    public async Task<ApiResponse<UserResponseDto>> GetUserByIdAsync(long userId)
+    public async Task<Result<UserResponseDto>> GetUserByIdAsync(Guid userId)
     {
-        if (userId <= 0)
-        {
-            return new ApiResponse<UserResponseDto>(HttpStatusCode.BadRequest, "User id is a positive number");
-        }
+        
 
-        var foundUser = await dbContext.Users.AsNoTracking().Where(u => u.Id == userId)
+        var foundUser = await dbContext.Users.AsNoTracking().Where(u => u.Id.Equals(userId))
             .Select(u => new UserResponseDto()
             {
                 Id = u.Id,
@@ -27,11 +24,11 @@ public class UsersService(ApplicationDbContext dbContext)
             .FirstOrDefaultAsync();
 
         return foundUser == null
-            ? new ApiResponse<UserResponseDto>(HttpStatusCode.NotFound, "User not found")
-            : new ApiResponse<UserResponseDto>(HttpStatusCode.OK, foundUser);
+            ? Result<UserResponseDto>.Failure("User not found")
+            : Result<UserResponseDto>.Success(foundUser);
     }
 
-    public async Task<ApiResponse<List<UserResponseDto>>> GetAllUsersAsync()
+    public async Task<Result<List<UserResponseDto>>> GetAllUsersAsync()
     {
         var foundUsers = await dbContext.Users
             .Select(u => new UserResponseDto()
@@ -42,16 +39,17 @@ public class UsersService(ApplicationDbContext dbContext)
                 Email = u.Email,
             }).ToListAsync();
         return foundUsers.Count == 0
-            ? new ApiResponse<List<UserResponseDto>>(HttpStatusCode.NotFound, "Users not found")
-            : new ApiResponse<List<UserResponseDto>>(HttpStatusCode.OK, foundUsers);
+            ? Result<List<UserResponseDto>>.Failure("Users not found")
+            : Result<List<UserResponseDto>>.Success(foundUsers);
     }
 
-    public async Task<ApiResponse<ConfirmationResponseDto>> ChangePasswordAsync(string email, ChangePasswordDto changePasswordDto)
+    public async Task<Result<ConfirmationResponseDto>> ChangePasswordAsync(string email, ChangePasswordDto changePasswordDto)
     {
+
         var foundUser = await dbContext.Users.Where(u => u.Email == email).FirstOrDefaultAsync();
         if (foundUser == null || !foundUser.IsActive)
         {
-            return new ApiResponse<ConfirmationResponseDto>(HttpStatusCode.NotFound, "User not found");
+            return Result<ConfirmationResponseDto>.Failure("User not found");
         }
 
         var isCurrentPassCorrect =
@@ -59,25 +57,22 @@ public class UsersService(ApplicationDbContext dbContext)
 
         if (!isCurrentPassCorrect)
         {
-            return new ApiResponse<ConfirmationResponseDto>(HttpStatusCode.BadRequest,
-                "Current password is incorrect");
+            return Result<ConfirmationResponseDto>.Failure("Current password is incorrect");
         }
 
         if (changePasswordDto.CurrentPassword == changePasswordDto.NewPassword)
         {
-            return new ApiResponse<ConfirmationResponseDto>(HttpStatusCode.BadRequest,
-                "Current password and new password are the same");
+            return Result<ConfirmationResponseDto>.Failure("Current password and new password are the same");
         }
 
 
         if (changePasswordDto.NewPassword != changePasswordDto.ConfirmNewPassword)
         {
-            return new ApiResponse<ConfirmationResponseDto>(HttpStatusCode.BadRequest,
-                "Passwords do not match");
+            return Result<ConfirmationResponseDto>.Failure("Passwords do not match");
         }
 
         foundUser.Password = BCrypt.Net.BCrypt.HashPassword(changePasswordDto.NewPassword);
         await dbContext.SaveChangesAsync();
-        return new ApiResponse<ConfirmationResponseDto>(HttpStatusCode.NoContent, "Password changed successfully");
+        return Result<ConfirmationResponseDto>.Success(new() { Message = "Password changed successfully" });
     }
 }

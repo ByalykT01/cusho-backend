@@ -1,12 +1,7 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using cusho.Dtos;
 using cusho.Dtos.UserDtos;
-using cusho.Models;
 using cusho.Services;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
 
 namespace cusho.Controllers;
 
@@ -15,45 +10,34 @@ namespace cusho.Controllers;
 public class AuthController(AuthService authService) : ControllerBase
 {
     [HttpPost("register")]
-    public async Task<ActionResult<ApiResponse<UserResponseDto>>> RegisterUser(UserRegistrationDto userRegistrationDto)
+    public async Task<Results<
+            CreatedAtRoute<UserResponseDto>,
+            BadRequest<string>
+        >> RegisterUser(UserRegistrationDto userRegistrationDto)
     {
-        var response = await authService.RegisterUserAsync(userRegistrationDto);
-        if (response.StatusCode != System.Net.HttpStatusCode.Created)
+        var result = await authService.RegisterUserAsync(userRegistrationDto);
+
+        if (result.IsFailure)
         {
-            return StatusCode((int)response.StatusCode, response);
+            return TypedResults.BadRequest(result.Error);
         }
 
-        return CreatedAtRoute(nameof(UsersController.GetUserById), new { userId = response.Data?.Id }, response);
+        return TypedResults.CreatedAtRoute(result.Value, nameof(UsersController.GetUserById), new { userId = result.Value.Id });
     }
-    
+
     [HttpPost("login")]
-    public IResult Login([FromBody] LoginDto loginDto)
+    public async Task<Results<
+            Ok<LoginResponseDto>,
+            UnauthorizedHttpResult
+        >> Login(LoginDto loginDto)
     {
-        if (!authService.ValidateUser(loginDto))
-            return Results.Unauthorized();
+        var result = await authService.LoginAsync(loginDto);
 
-        var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY")!;
-        var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? "cusho";
-        var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? "cusho";
-
-        var claims = new[]
+        if (result.IsFailure)
         {
-            new Claim(ClaimTypes.Name, loginDto.Email),
-            new Claim(ClaimTypes.Role, nameof(Role.User)),
-        };
+            return TypedResults.Unauthorized();
+        }
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
-        var token = new JwtSecurityToken(
-            issuer: jwtIssuer,
-            audience: jwtAudience,
-            claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(30),
-            signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256)
-        );
-
-        return Results.Ok(new
-        {
-            token = new JwtSecurityTokenHandler().WriteToken(token)
-        });
+        return TypedResults.Ok(result.Value);
     }
 }

@@ -1,56 +1,65 @@
-using System.Net;
 using System.Security.Claims;
 using cusho.Dtos;
 using cusho.Dtos.UserDtos;
 using cusho.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace cusho.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class UsersController(UsersService usersService, ILogger<UsersController> logger) : ControllerBase
+public class UsersController(UsersService usersService) : ControllerBase
 {
-    [HttpGet("{userId}", Name = nameof(GetUserById))]
-    public async Task<ActionResult<ApiResponse<UserResponseDto>>> GetUserById(long userId)
+    [HttpGet("/{userId}", Name = nameof(GetUserById))]
+    public async Task<Results<
+        Ok<UserResponseDto>,
+        BadRequest<string>
+    >> GetUserById(Guid userId)
     {
-        var response = await usersService.GetUserByIdAsync(userId);
+        var result = await usersService.GetUserByIdAsync(userId);
 
-        if (response.StatusCode != HttpStatusCode.OK)
+        if (result.IsFailure)
         {
-            return StatusCode((int)response.StatusCode, response);
+            return TypedResults.BadRequest(result.Error);
         }
 
-        return Ok(response);
+        return TypedResults.Ok(result.Value);
     }
 
     [HttpGet]
-    public async Task<ActionResult<ApiResponse<UserResponseDto>>> GetAllUsers()
+    public async Task<Results<
+        Ok<List<UserResponseDto>>,
+        BadRequest<string>
+    >> GetUsers()
     {
-        var response = await usersService.GetAllUsersAsync();
+        var result = await usersService.GetAllUsersAsync();
 
-        if (response.StatusCode != HttpStatusCode.OK)
+        if (result.IsFailure)
         {
-            return StatusCode((int)response.StatusCode, response);
+            return TypedResults.BadRequest(result.Error);
         }
 
-        return Ok(response);
+        return TypedResults.Ok(result.Value);
     }
 
     [Authorize]
     [HttpPost("change-password")]
-    public async Task<ActionResult<ApiResponse<UserResponseDto>>> ChangePassword(
-        [FromBody] ChangePasswordDto changePasswordDto)
+    public async Task<Results<
+        NoContent,
+        BadRequest<string>
+    >> ChangePassword([FromBody] ChangePasswordDto changePasswordDto)
     {
         var email = User.FindFirst(ClaimTypes.Name)?.Value!;
-        var response = await usersService.ChangePasswordAsync(email, changePasswordDto);
 
-        if (!response.Success)
+        var result = await usersService.ChangePasswordAsync(email, changePasswordDto);
+
+        if (result.IsFailure)
         {
-            return StatusCode((int)response.StatusCode, response);
+            return TypedResults.BadRequest(result.Error);
         }
 
-        return NoContent();
+        return TypedResults.NoContent();
     }
 }
