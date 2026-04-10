@@ -5,7 +5,7 @@ namespace cusho.Models;
 
 public class User
 {
-    public long Id { get; set; }
+    public Guid Id { get; set; }
 
     [Required(ErrorMessage = "First name is required")]
     [StringLength(50, MinimumLength = 2, ErrorMessage = "First name cannot be longer than 50 characters")]
@@ -28,7 +28,7 @@ public class User
     public bool IsActive { get; set; } = true;
 
     [Required(ErrorMessage = "Cart ID is required")]
-    public long CartId { get; set; }
+    public Guid CartId { get; set; }
 
     [ForeignKey("CartId")] public Cart? Cart { get; set; }
 

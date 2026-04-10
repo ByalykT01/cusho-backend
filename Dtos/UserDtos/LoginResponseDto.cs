@@ -2,7 +2,8 @@ namespace cusho.Dtos.UserDtos;
 
 public class LoginResponseDto
 {
-    public long Id { get; set; }
-    public string FirstName { get; set; }
-    public string Message { get; set; }
+    public Guid Id { get; set; }
+    public required string FirstName { get; set; }
+    public required string Token { get; set; }
+    public string Message { get; set; } = "Login successful";
 }

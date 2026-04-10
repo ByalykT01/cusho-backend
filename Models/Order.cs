@@ -8,7 +8,7 @@ public class Order
     public long Id { get; set; }
 
     [Required]
-    public long UserId { get; set; }
+    public Guid UserId { get; set; }
 
     [ForeignKey("UserId")]
     public User? User { get; set; }
