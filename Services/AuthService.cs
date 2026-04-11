@@ -13,10 +13,14 @@ using System.Text;
 
 namespace cusho.Services;
 
-public class AuthService(ApplicationDbContext dbContext, IOptions<JwtSettings> jwtOptions)
+public class AuthService(ApplicationDbContext dbContext, IOptions<JwtSettings> jwtOptions, ILogger<AuthService> logger)
 {
     public async Task<Result<UserResponseDto>> RegisterUserAsync(UserRegistrationDto userRegistrationDto)
     {
+        if (userRegistrationDto.Password.Length < 8)
+        {
+            logger.LogWarning("Password {string} is too short.",  userRegistrationDto.Password);
+        }
         
         var normalizedEmail = userRegistrationDto.Email.ToLowerInvariant();
 
@@ -43,6 +47,7 @@ public class AuthService(ApplicationDbContext dbContext, IOptions<JwtSettings> j
             FirstName = user.FirstName,
             LastName = user.LastName,
         };
+        logger.LogInformation("User {@UserResponseDto} created", userResponseDto);
         return userResponseDto;
     }
 

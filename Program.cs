@@ -8,12 +8,37 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using OpenTelemetry.Logs;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateBuilder(args);
 if (builder.Environment.IsDevelopment())
 {
     Env.Load();
 }
+
+builder.Logging.AddOpenTelemetry(logging =>
+{
+    logging.IncludeFormattedMessage = true;
+    logging.IncludeScopes = true;
+});
+
+builder.Services.AddOpenTelemetry().ConfigureResource(resource => resource.AddService(DiagnosticsConfig.ServiceName))
+    .WithMetrics(metrics =>
+    {
+        metrics.AddAspNetCoreInstrumentation().AddHttpClientInstrumentation();
+        metrics.AddOtlpExporter();
+    })
+    .WithTracing(tracing =>
+    {
+        tracing.AddAspNetCoreInstrumentation().AddHttpClientInstrumentation().AddEntityFrameworkCoreInstrumentation();
+        tracing.AddOtlpExporter();
+    });
+
+builder.Logging.AddOpenTelemetry(logging => logging.AddOtlpExporter());
+
 
 var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY")
              ?? throw new InvalidOperationException("JWT_KEY environment variable is required");
