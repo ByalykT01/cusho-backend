@@ -1,6 +1,4 @@
-using cusho.Common;
 using cusho.Configuration;
-using cusho.CustomExceptions;
 using cusho.Data;
 using cusho.Dtos.UserDtos;
 using cusho.Models;
@@ -10,18 +8,15 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using cusho.Configuration.Options;
+using cusho.Infrastructure;
 
 namespace cusho.Services;
 
-public class AuthService(ApplicationDbContext dbContext, IOptions<JwtSettings> jwtOptions, ILogger<AuthService> logger)
+public class AuthService(ApplicationDbContext dbContext, IOptions<JwtOptions> jwtOptions, ILogger<AuthService> logger)
 {
     public async Task<Result<UserResponseDto>> RegisterUserAsync(UserRegistrationDto userRegistrationDto)
     {
-        if (userRegistrationDto.Password.Length < 8)
-        {
-            logger.LogWarning("Password {string} is too short.",  userRegistrationDto.Password);
-        }
-        
         var normalizedEmail = userRegistrationDto.Email.ToLowerInvariant();
 
         var cart = new Cart();
@@ -47,7 +42,7 @@ public class AuthService(ApplicationDbContext dbContext, IOptions<JwtSettings> j
             FirstName = user.FirstName,
             LastName = user.LastName,
         };
-        logger.LogInformation("User {@UserResponseDto} created", userResponseDto);
+        logger.LogInformation("User registration succeeded for user {UserId}.", user.Id);
         return userResponseDto;
     }
 
@@ -56,6 +51,7 @@ public class AuthService(ApplicationDbContext dbContext, IOptions<JwtSettings> j
         var foundUser = await dbContext.Users.FirstOrDefaultAsync(u => u.Email == loginDto.Email);
         if (foundUser is null || !BCrypt.Net.BCrypt.Verify(loginDto.Password, foundUser.Password))
         {
+            logger.LogWarning("Login failed due to invalid credentials.");
             return Result<LoginResponseDto>.Failure("Invalid email or password");
         }
 
@@ -68,6 +64,7 @@ public class AuthService(ApplicationDbContext dbContext, IOptions<JwtSettings> j
             Token = token
         };
 
+        logger.LogInformation("Login succeeded for user {UserId}.", foundUser.Id);
         return loginResponse;
     }
 
@@ -89,7 +86,7 @@ public class AuthService(ApplicationDbContext dbContext, IOptions<JwtSettings> j
             expires: DateTime.UtcNow.AddMinutes(30),
             signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256)
         );
-        
+
         // refresh
         //oauth
 

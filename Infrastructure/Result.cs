@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 
-namespace cusho.Common;
+namespace cusho.Infrastructure;
 
 public class Result<T>
 {
