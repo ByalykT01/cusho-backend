@@ -8,6 +8,7 @@ builder.AddAppAuth();
 builder.AddPersistence();
 builder.AddCorsPolicy();
 builder.AddObservability();
+builder.AddAuthPolicies();
 
 builder.Configuration.AddEnvironmentVariables();
 builder.Configuration.AddUserSecrets<Program>(optional: true);

@@ -13,5 +13,11 @@ public static class ServicesExtensions
 
             return builder;
         }
+
+        public IHostApplicationBuilder AddAuthPolicies()
+        {
+            builder.Services.AddAuthorizationBuilder().AddPolicy("IsAdmin", policy => { policy.RequireRole("2"); });
+            return builder;
+        }
     }
 }

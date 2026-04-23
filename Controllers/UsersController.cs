@@ -28,6 +28,7 @@ public class UsersController(UsersService usersService) : ControllerBase
         return TypedResults.Ok(result.Value);
     }
 
+    [Authorize("IsAdmin")]
     [HttpGet]
     public async Task<Results<
         Ok<List<UserResponseDto>>,
