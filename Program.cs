@@ -22,6 +22,7 @@ var app = builder.Build();
 
 await app.MigrateDatabaseAsync();
 
+app.UseSwaggerWithDefaults();
 app.UseExceptionHandler();
 app.UseStatusCodePages();
 app.UseHsts();
