@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using cusho.Dtos;
 using cusho.Dtos.UserDtos;
 using cusho.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -10,19 +9,20 @@ namespace cusho.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class UsersController(UsersService usersService) : ControllerBase
+public sealed class UsersController(UsersService usersService) : ControllerBase
 {
-    [HttpGet("/{userId}", Name = nameof(GetUserById))]
+    [Authorize("IsAdmin")]
+    [HttpGet("{userId}", Name = nameof(GetUserById))]
     public async Task<Results<
         Ok<UserResponseDto>,
-        BadRequest<string>
+        ProblemHttpResult
     >> GetUserById(Guid userId)
     {
         var result = await usersService.GetUserByIdAsync(userId);
 
         if (result.IsFailure)
         {
-            return TypedResults.BadRequest(result.Error);
+            return NotFoundProblem(result.Error);
         }
 
         return TypedResults.Ok(result.Value);
@@ -30,17 +30,9 @@ public class UsersController(UsersService usersService) : ControllerBase
 
     [Authorize("IsAdmin")]
     [HttpGet]
-    public async Task<Results<
-        Ok<List<UserResponseDto>>,
-        BadRequest<string>
-    >> GetUsers()
+    public async Task<Ok<List<UserResponseDto>>> GetUsers()
     {
         var result = await usersService.GetAllUsersAsync();
-
-        if (result.IsFailure)
-        {
-            return TypedResults.BadRequest(result.Error);
-        }
 
         return TypedResults.Ok(result.Value);
     }
@@ -49,18 +41,60 @@ public class UsersController(UsersService usersService) : ControllerBase
     [HttpPost("change-password")]
     public async Task<Results<
         NoContent,
-        BadRequest<string>
+        ProblemHttpResult
     >> ChangePassword([FromBody] ChangePasswordDto changePasswordDto)
     {
-        var email = User.FindFirst(ClaimTypes.Name)?.Value!;
+        if (!TryGetCurrentUserId(out var userId))
+        {
+            return UnauthorizedProblem();
+        }
 
-        var result = await usersService.ChangePasswordAsync(email, changePasswordDto);
+        var result = await usersService.ChangePasswordAsync(userId, changePasswordDto);
 
         if (result.IsFailure)
         {
-            return TypedResults.BadRequest(result.Error);
+            return result.Error == "User not found"
+                ? NotFoundProblem(result.Error)
+                : BadRequestProblem(result.Error);
         }
 
         return TypedResults.NoContent();
     }
+
+    [Authorize]
+    [HttpGet("me")]
+    public async Task<Results<
+        Ok<UserResponseDto>,
+        ProblemHttpResult
+    >> GetLoggedInUser()
+    {
+        if (!TryGetCurrentUserId(out var userId))
+        {
+            return UnauthorizedProblem();
+        }
+
+        var result = await usersService.GetUserByIdAsync(userId);
+
+        if (result.IsFailure)
+        {
+            return NotFoundProblem(result.Error);
+        }
+
+        return TypedResults.Ok(result.Value);
+    }
+
+    private bool TryGetCurrentUserId(out Guid userId)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        return Guid.TryParse(userIdClaim, out userId);
+    }
+
+    private static ProblemHttpResult BadRequestProblem(string? detail) =>
+        TypedResults.Problem(title: "Bad Request", detail: detail, statusCode: StatusCodes.Status400BadRequest);
+
+    private static ProblemHttpResult NotFoundProblem(string? detail) =>
+        TypedResults.Problem(title: "Not Found", detail: detail, statusCode: StatusCodes.Status404NotFound);
+
+    private static ProblemHttpResult UnauthorizedProblem() =>
+        TypedResults.Problem(title: "Unauthorized", detail: "Authentication required.", statusCode: StatusCodes.Status401Unauthorized);
 }

@@ -2,6 +2,7 @@ using System.Text;
 using cusho.Configuration.Options;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
 
 namespace cusho.Configuration.Extensions;
 
@@ -30,7 +31,9 @@ public static class AuthExtensions
                         ValidateIssuerSigningKey = true,
                         ValidIssuer = jwt.Issuer,
                         ValidAudience = jwt.Audience,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Key))
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Key)),
+                        NameClaimType = ClaimTypes.Name,
+                        RoleClaimType = ClaimTypes.Role
                     };
                 });
 

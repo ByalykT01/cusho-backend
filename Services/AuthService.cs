@@ -48,7 +48,9 @@ public class AuthService(ApplicationDbContext dbContext, IOptions<JwtOptions> jw
 
     public async Task<Result<LoginResponseDto>> LoginAsync(LoginDto loginDto)
     {
-        var foundUser = await dbContext.Users.FirstOrDefaultAsync(u => u.Email == loginDto.Email);
+        var normalizedEmail = loginDto.Email.ToLowerInvariant();
+
+        var foundUser = await dbContext.Users.FirstOrDefaultAsync(u => u.Email == normalizedEmail);
         if (foundUser is null || !BCrypt.Net.BCrypt.Verify(loginDto.Password, foundUser.Password))
         {
             logger.LogWarning("Login failed due to invalid credentials.");
