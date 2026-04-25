@@ -1,37 +1,22 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
 namespace cusho.Models;
 
 public class User
 {
     public Guid Id { get; set; }
-
-    [Required(ErrorMessage = "First name is required")]
-    [StringLength(50, MinimumLength = 2, ErrorMessage = "First name cannot be longer than 50 characters")]
-    public required string FirstName { get; set; }
-
-    [Required(ErrorMessage = "Last name is required")]
-    [StringLength(50, MinimumLength = 2, ErrorMessage = "Last name cannot be longer than 50 characters")]
-    public required string LastName { get; set; }
-
-    [Required(ErrorMessage = "Email is required")]
-    [EmailAddress(ErrorMessage = "Email is not valid")]
-    public required string Email { get; set; }
-
-    [Required(ErrorMessage = "Password is required")]
-    public required string Password { get; set; }
-
+    public string FirstName { get; set; } = string.Empty;
+    public string LastName { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
     public Role Role { get; set; } = Role.User;
-    public DateTime Created { get; init; }
+    public DateTime Created { get; init; } = DateTime.UtcNow;
+    
+    public Guid AddressId { get; set; }
     public Address? Address { get; set; }
     public bool IsActive { get; set; } = true;
-
-    [Required(ErrorMessage = "Cart ID is required")]
+    
     public Guid CartId { get; set; }
-
-    [ForeignKey("CartId")] public Cart? Cart { get; set; }
-
-    public ICollection<Order>? Orders { get; set; }
-    public ICollection<WishlistItem>? WishlistItems { get; set; }
+    public Cart Cart { get; set; } = null!;
+    
+    public ICollection<Order> Orders { get; set; } = new List<Order>();
+    public ICollection<WishlistItem> WishlistItems { get; set; } = new List<WishlistItem>();
 }

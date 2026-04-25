@@ -1,16 +1,10 @@
-using System.ComponentModel.DataAnnotations.Schema;
-
 namespace cusho.Models;
 
 public class ProductTag
 {
-    public long ProductId { get; set; }
-
-    [ForeignKey("ProductId")]
+    public Guid ProductId { get; set; }
     public Product? Product { get; set; }
-
-    public long TagId { get; set; }
-
-    [ForeignKey("TagId")]
+    
+    public Guid TagId { get; set; } 
     public Tag? Tag { get; set; }
 }

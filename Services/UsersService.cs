@@ -59,7 +59,7 @@ public sealed class UsersService(ApplicationDbContext dbContext, ILogger<UsersSe
         ChangePasswordDto changePasswordDto)
     {
         var foundUser = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
-        if (foundUser == null || !foundUser.IsActive)
+        if (foundUser is not { IsActive: true })
         {
             logger.LogWarning("Password change failed because user is missing or inactive.");
             return Result<ConfirmationResponseDto>.Failure("User not found");

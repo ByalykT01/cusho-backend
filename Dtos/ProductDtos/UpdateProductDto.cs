@@ -18,8 +18,10 @@ public class UpdateProductDto
 
     public bool IsAvailable { get; set; }
 
+    [Range(1, long.MaxValue, ErrorMessage = "CategoryId must be greater than 0")]
     public long? CategoryId { get; set; }
 
+    [Range(1, long.MaxValue, ErrorMessage = "CollectionId must be greater than 0")]
     public long? CollectionId { get; set; }
 
     public List<string>? ImageUrls { get; set; }
