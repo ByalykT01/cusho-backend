@@ -14,7 +14,7 @@ public static class CorsExtensions
 
             builder.Services.AddCors(options => options.AddPolicy(CorsPolicy, policy =>
             {
-                if (corsOptions == null || corsOptions.AllowedOrigins.Equals("*"))
+                if (corsOptions == null || corsOptions.AllowedOrigins.Contains("*"))
                     policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
                 else
                     policy.WithOrigins(corsOptions.AllowedOrigins).AllowAnyMethod().AllowAnyHeader();
