@@ -24,8 +24,6 @@ public static class PersistenceExtensions
     {
         public async Task MigrateDatabaseAsync()
         {
-            if (app.Configuration.GetValue("Database:AutoMigrate", false)) return;
-
             using var scope = app.Services.CreateScope();
 
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();

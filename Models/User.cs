@@ -10,7 +10,7 @@ public class User
     public Role Role { get; set; } = Role.User;
     public DateTime Created { get; init; } = DateTime.UtcNow;
     
-    public Guid AddressId { get; set; }
+    public Guid? AddressId { get; set; }
     public Address? Address { get; set; }
     public bool IsActive { get; set; } = true;
     
